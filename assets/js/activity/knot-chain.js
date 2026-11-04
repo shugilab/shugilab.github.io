@@ -1,5 +1,5 @@
 import * as THREE from '../../vendor/three/three.module.js';
-import {createHalfKnotStack,HALF_KNOT_DATA} from './half-knot.js?v=pages-candidate-20261104-9';
+import {createHalfKnotStack,HALF_KNOT_DATA} from './half-knot.js?v=pages-candidate-20261104-18';
 
 export const KNOT_CHAIN=Object.freeze({
   count:3,

@@ -1,8 +1,8 @@
 import * as THREE from '../../vendor/three/three.module.js';
-import { createActivityModels } from './models.js?v=pages-candidate-20261104-9';
-import { pointVertex, pointFragment } from './shaders.js?v=pages-candidate-20261104-9';
-import {PARTICLE_STYLE,particleUniforms,createSurfaceDepthPass,particleDisplayScale} from './particle-rendering.js?v=pages-candidate-20261104-9';
-import {readParticleSettings,particleCount} from './particle-settings.js?v=pages-candidate-20261104-9';
+import { createActivityModels } from './models.js?v=pages-candidate-20261104-18';
+import { pointVertex, pointFragment } from './shaders.js?v=pages-candidate-20261104-18';
+import {PARTICLE_STYLE,particleUniforms,createSurfaceDepthPass,particleDisplayScale} from './particle-rendering.js?v=pages-candidate-20261104-18';
+import {readParticleSettings,particleCount} from './particle-settings.js?v=pages-candidate-20261104-18';
 
 const clamp = value => Math.max(0, Math.min(1, value));
 const smooth = value => { const t = clamp(value); return t*t*(3-2*t); };
@@ -44,6 +44,7 @@ export function initActivityScene(root) {
   const news = document.querySelector('.home-featured');
   const chapters = [...root.querySelectorAll('[data-scene-step]')];
   const compactViewport = matchMedia('not all and (min-aspect-ratio: 3/2)');
+  const touchViewport = matchMedia('(pointer: coarse)');
   let samplingCompact=compactViewport.matches;
   const settings=readParticleSettings({compact:samplingCompact});
   let models = createActivityModels({ pointCount: particleCount(samplingCompact?6500:6000,settings.density), retainSurfaces:true });
@@ -199,13 +200,23 @@ export function initActivityScene(root) {
     target = Math.max(-1, Math.min(2, progress)); scrollTarget = rotation;
     const bounds = root.getBoundingClientRect();
     const top = clamp((news || root).getBoundingClientRect().top/height)*height;
-    const bottom = clamp((height-bounds.bottom)/height)*height;
+    // Safari's floating controls may clip fixed layers before their CSS
+    // extent. Fade inside the visible viewport rather than trying to draw
+    // through browser chrome. Keep the small-viewport canvas size stable.
+    const viewport=window.visualViewport;
+    const visibleBottom=viewport&&Math.abs(viewport.scale-1)<.01
+      ?viewport.offsetTop+viewport.height:innerHeight;
+    const end=Math.min(height,bounds.bottom,visibleBottom);
+    const bottom=clamp((height-end)/height)*height;
     visual.style.clipPath = `inset(${top}px 0 ${bottom}px 0)`;
-    const edgeFade = Math.min(72, Math.max(0, height-top-bottom)/3);
+    const available=Math.max(0,height-top-bottom);
+    const edgeFade=Math.min(72,available/3);
+    const browserFade=touchViewport.matches?Math.min(104,Math.max(72,(end-top)*.14)):0;
+    const bottomFade=Math.min(available/3,Math.max(bottom>0?edgeFade:0,browserFade));
     visual.style.setProperty('--scene-clip-top', `${top}px`);
     visual.style.setProperty('--scene-clip-bottom', `${bottom}px`);
     visual.style.setProperty('--scene-fade-top', `${top > 0 ? edgeFade : 0}px`);
-    visual.style.setProperty('--scene-fade-bottom', `${bottom > 0 ? edgeFade : 0}px`);
+    visual.style.setProperty('--scene-fade-bottom', `${bottomFade}px`);
     schedule();
   }
 
@@ -313,6 +324,9 @@ export function initActivityScene(root) {
   if (news) intersection.observe(news);
   window.addEventListener('scroll', readScroll, { passive: true, signal: abort.signal });
   window.addEventListener('resize', resize, { passive: true, signal: abort.signal });
+  window.visualViewport?.addEventListener('resize',readScroll,{passive:true,signal:abort.signal});
+  window.visualViewport?.addEventListener('scroll',readScroll,{passive:true,signal:abort.signal});
+  touchViewport.addEventListener('change',readScroll,{signal:abort.signal});
   // HOME no longer waits behind a loader; remeasure chapter anchors if the
   // Japanese web font changes their height after the scene initializes.
   document.fonts?.ready.then(() => { if (!destroyed) resize(); });

@@ -1,6 +1,6 @@
 import * as THREE from '../../vendor/three/three.module.js';
-import {HALF_KNOT_DATA} from './half-knot-data.js?v=pages-candidate-20261104-9';
-import {closeTubeEnds} from './tube-geometry.js?v=pages-candidate-20261104-9';
+import {HALF_KNOT_DATA} from './half-knot-data.js?v=pages-candidate-20261104-18';
+import {closeTubeEnds} from './tube-geometry.js?v=pages-candidate-20261104-18';
 
 export {HALF_KNOT_DATA};
 

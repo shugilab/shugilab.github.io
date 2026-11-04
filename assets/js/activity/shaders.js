@@ -1,4 +1,4 @@
-import {surfacePointFragment} from './particle-rendering.js?v=pages-candidate-20261104-9';
+import {surfacePointFragment} from './particle-rendering.js?v=pages-candidate-20261104-18';
 
 // Particle position function. New GLSL effects belong here.
 // uGlitchStrength is intentionally zero until an effect is requested.

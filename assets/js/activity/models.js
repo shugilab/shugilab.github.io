@@ -1,7 +1,7 @@
 import * as THREE from '../../vendor/three/three.module.js';
-import { ligationTrainer } from './ligation.js?v=pages-candidate-20261104-9';
-import {closeTubeEnds} from './tube-geometry.js?v=pages-candidate-20261104-9';
-import {addLaparoscopicForceps} from './laparoscopic-forceps.js?v=pages-candidate-20261104-9';
+import { ligationTrainer } from './ligation.js?v=pages-candidate-20261104-18';
+import {closeTubeEnds} from './tube-geometry.js?v=pages-candidate-20261104-18';
+import {addLaparoscopicForceps} from './laparoscopic-forceps.js?v=pages-candidate-20261104-18';
 
 const BLUE = new THREE.Color('#062479').toArray();
 const PINK = new THREE.Color('#e33671').toArray();

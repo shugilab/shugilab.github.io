@@ -1,5 +1,5 @@
 import * as THREE from '../../vendor/three/three.module.js';
-import { createKnotChain, KNOT_CHAIN } from './knot-chain.js?v=pages-candidate-20261104-9';
+import { createKnotChain, KNOT_CHAIN } from './knot-chain.js?v=pages-candidate-20261104-18';
 
 const BLUE = new THREE.Color('#062479').toArray();
 const PINK = new THREE.Color('#e33671').toArray();

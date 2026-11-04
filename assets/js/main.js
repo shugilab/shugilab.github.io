@@ -1,9 +1,9 @@
 const root = document.getElementById('loader');
-const page = document.getElementById('page');
+const gameHost = document.querySelector('[data-game-host]');
+const page = gameHost?.querySelector('[data-game-content]') || document.getElementById('page');
 const gamePage = document.body.hasAttribute('data-game-page');
 const revision = new URL(import.meta.url).searchParams.get('v');
 let loader;
-let restored = false;
 
 // Share the HTML's revision with imported assets so cached modules update together.
 function assetUrl(relativePath) {
@@ -19,14 +19,6 @@ if (siteMenu) {
     .catch(error => console.error('メニューの操作を初期化できませんでした。', error));
 }
 
-// The ribbon animation belongs to game pages only. Entering a game, including
-// from HOME or the game list, plays it; history restoration resumes the page.
-function shouldAutoPlay() {
-  if (!gamePage) return false;
-  const navigation = performance.getEntriesByType('navigation')[0];
-  return navigation?.type !== 'back_forward';
-}
-
 function finishWithoutAnimation() {
   root.hidden = true;
   page.inert = false;
@@ -35,10 +27,44 @@ function finishWithoutAnimation() {
   window.dispatchEvent(new CustomEvent('shugilab:ready'));
 }
 
-async function startLoader() {
+async function prepareGame() {
+  const host = document.querySelector('[data-game-host]');
+  try {
+    if (!host) throw new Error('Game container is missing.');
+    host.dataset.gameState = 'loading';
+    host.setAttribute('aria-busy', 'true');
+    const { initGame } = await import(assetUrl('./game.js'));
+    await initGame(page);
+    host.dataset.gameState = 'ready';
+    host.dispatchEvent(new CustomEvent('shugilab:game-ready', { bubbles: true }));
+  } catch (error) {
+    // Resolve only after the error view is usable, so a failed game cannot leave
+    // an endless loading screen or reveal a partially initialized application.
+    console.error('ゲームを読み込めませんでした。', error);
+    if (host) {
+      host.dataset.gameState = 'error';
+      const message = document.createElement('p');
+      message.textContent = 'ゲームを読み込めませんでした。';
+      const retry = document.createElement('a');
+      retry.href = location.href;
+      retry.textContent = '再読み込み';
+      page.replaceChildren(message, retry);
+    }
+  } finally {
+    host?.setAttribute('aria-busy', 'false');
+  }
+}
+
+async function startLoader(ready) {
   root.hidden = false;
   page.inert = true;
   page.setAttribute('aria-busy', 'true');
+  let isReady = false;
+  ready.then(() => {
+    isReady = true;
+    // Fast initialization does not wait for animation assets or a minimum intro.
+    if (!loader) finishWithoutAnimation();
+  });
 
   try {
     const [{ RibbonLoader }, response] = await Promise.all([
@@ -47,34 +73,27 @@ async function startLoader() {
     ]);
     if (!response.ok) throw new Error(`Logo request failed: ${response.status}`);
     const markSvg = await response.text();
-    if (restored) return;
+    if (isReady) return;
 
     loader = new RibbonLoader({ root, page, markSvg });
 
 
 
-    const loaded = document.readyState === 'complete'
-      ? Promise.resolve()
-      : new Promise(resolve => window.addEventListener('load', resolve, { once: true }));
-    const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
-    await loader.play({ ready: Promise.all([loaded, fonts]) });
+    await loader.play({ ready, minimumDuration: 0 });
   } catch (error) {
-    // Content stays available even if the animation or logo cannot load.
+    // Even if animation assets fail, keep the loading screen until the game (or
+    // its error view) is ready. A missing logo must not skip game initialization.
+    console.error('ShugiLab loader failed:', error);
+    await ready;
     if (loader) loader.dismiss();
     else finishWithoutAnimation();
-    console.error('ShugiLab loader failed:', error);
   }
 }
 
 if (root && page) {
-  window.addEventListener('pageshow', event => {
-    if (!event.persisted) return;
-    restored = true;
-    if (loader) loader.dismiss();
-    else finishWithoutAnimation();
-  });
-
-  if (gamePage && shouldAutoPlay()) startLoader();
+  // This is the game's loading lifecycle, inside its host. No link interception
+  // or navigation-type playback; a bfcache restoration simply keeps its state.
+  if (gamePage) startLoader(prepareGame());
   else finishWithoutAnimation();
 }
 

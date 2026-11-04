@@ -78,10 +78,14 @@ export class RibbonLoader {
     this.frame=this.frame.bind(this);
     this.resize=this.resize.bind(this);
     window.addEventListener('resize',this.resize,{passive:true});
+    this.resizeObserver=new ResizeObserver(this.resize);
+    this.resizeObserver.observe(root);
     this.resize();
   }
   resize() {
-    this.w=window.innerWidth;this.h=window.innerHeight;
+    const bounds=this.root.getBoundingClientRect();
+    if(!bounds.width||!bounds.height)return;
+    this.w=bounds.width;this.h=bounds.height;
     this.dpr=Math.min(window.devicePixelRatio||1,2);
     for(const {canvas,ctx} of [{canvas:this.canvas,ctx:this.ctx},...this.layers,...this.masks]) {
       canvas.width=Math.round(this.w*this.dpr);canvas.height=Math.round(this.h*this.dpr);
@@ -379,11 +383,12 @@ export class RibbonLoader {
     const fading=this.exitAt!==null&&ms>=this.exitAt;
     this.root.dataset.phase=fading?'fadeout':ms<this.enter?'intertwine':'hold';
   }
-  async play({ready=Promise.resolve()}={}) {
+  async play({ready=Promise.resolve(),minimumDuration=this.enter+this.hold}={}) {
     const token=++this.token;
-    cancelAnimationFrame(this.raf);clearTimeout(this.failsafe);
+    cancelAnimationFrame(this.raf);
     if(this.resolveFinished){this.resolveFinished();this.resolveFinished=null;}
     this.running=true;this.isReady=false;this.readyAt=null;this.exitAt=null;this.start=null;
+    this.minimumDuration=minimumDuration;
     this.root.hidden=false;this.root.style.opacity='1';
     this.page.inert=true;this.page.setAttribute('aria-busy','true');
     this.liveStatus.textContent=this.root.getAttribute('aria-label')||'読み込んでいます。';
@@ -392,7 +397,6 @@ export class RibbonLoader {
     if(token!==this.token)return;
     this.start=performance.now();
     Promise.resolve(ready).catch(()=>{}).then(()=>{if(token===this.token)this.finish();});
-    this.failsafe=setTimeout(()=>{if(token===this.token)this.dismiss();},25000);
     const finished=new Promise(resolve=>{this.resolveFinished=resolve;});
     this.raf=requestAnimationFrame(this.frame);
     return finished;
@@ -400,14 +404,14 @@ export class RibbonLoader {
   frame(now) {
     if(!this.running)return;
     const t=(now-this.start)*this.speed;
-    if(this.exitAt===null&&this.isReady&&t>=this.enter+this.hold)
-      this.exitAt=Math.max(this.enter+this.hold,this.readyAt);
+    if(this.exitAt===null&&this.isReady&&t>=this.minimumDuration)
+      this.exitAt=Math.max(this.minimumDuration,this.readyAt);
     if(this.exitAt!==null&&t>=this.exitAt+this.leave){this.dismiss();return;}
     this.render(t);this.raf=requestAnimationFrame(this.frame);
   }
   finish(){if(this.isReady)return;this.isReady=true;this.readyAt=this.start===null?0:(performance.now()-this.start)*this.speed;}
   dismiss() {
-    this.running=false;++this.token;cancelAnimationFrame(this.raf);clearTimeout(this.failsafe);
+    this.running=false;++this.token;cancelAnimationFrame(this.raf);
     this.root.hidden=true;this.root.style.opacity='0';
     this.page.inert=false;this.page.setAttribute('aria-busy','false');
     this.liveStatus.textContent='読み込みが完了しました。';
@@ -415,7 +419,7 @@ export class RibbonLoader {
     window.dispatchEvent(new CustomEvent('shugilab:ready'));
   }
   seek(ms) {
-    cancelAnimationFrame(this.raf);clearTimeout(this.failsafe);this.running=false;
+    cancelAnimationFrame(this.raf);this.running=false;
     this.root.hidden=false;this.exitAt=this.enter+this.hold;this.render(ms);
     if(ms>=this.exitAt+this.leave)this.dismiss();
   }
