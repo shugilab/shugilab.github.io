@@ -1,5 +1,5 @@
 import * as THREE from '../../vendor/three/three.module.js';
-import { createKnotChain, KNOT_CHAIN } from './knot-chain.js?v=pages-candidate-20261104-1';
+import { createKnotChain, KNOT_CHAIN } from './knot-chain.js?v=pages-candidate-20261104-9';
 
 const BLUE = new THREE.Color('#062479').toArray();
 const PINK = new THREE.Color('#e33671').toArray();
@@ -77,7 +77,8 @@ function trainingStand(model, shape, chain) {
 function tiedCord(model, chain) {
   chain.strands.forEach((curve,i)=>
     model.tube(curve,chain.settings.ropeRadius,{color:i?PINK:BLUE,segments:1500,radialSegments:16,capEnd:true,weight:3.6}));
-  model.tube(chain.attachment,chain.settings.ropeRadius,{color:BLUE,segments:320,radialSegments:16,weight:3.6});
+  model.tube(chain.attachment,chain.settings.ropeRadius,{color:BLUE,segments:320,radialSegments:16,weight:3.6,
+    colorAt:t=>t<chain.attachment.colorBoundary?BLUE:PINK});
 }
 
 export function ligationTrainer(model) {

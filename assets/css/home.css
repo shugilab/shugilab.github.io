@@ -11,10 +11,8 @@
   --intro-min-ratio: 1;
 }
 .home-page #page { display: block; position: relative; isolation: isolate; }
-.home-page .site-footer { position: relative; z-index: 3; gap: calc(20 * var(--home-unit)); padding-block: calc(22 * var(--home-unit)) calc(30 * var(--home-unit)); border-top-width: var(--home-unit); background: var(--paper); font-size: calc(12 * var(--home-unit)); }
-@media (min-width: 1740px) {
-  .home-page .site-footer { width: min(calc(100% - 48 * var(--home-unit)), calc(1040 * var(--home-unit))); }
-}
+.home-page .site-footer { --footer-unit: var(--home-unit); position: relative; z-index: 3; width: min(calc(100% - 64 * var(--home-unit)), calc(1160 * var(--home-unit))); background: var(--paper); }
+@media (max-width: 720px) { .home-page .site-footer { width: calc(100% - 40 * var(--home-unit)); } }
 .home-page .site-header {
   position: absolute;
   inset: 0 0 auto;
@@ -206,7 +204,6 @@
 .intro-instagram svg { width: .9em; height: .9em; flex: none; }
 .intro-instagram:hover span { text-decoration: underline; text-underline-offset: .2em; }
 .intro-instagram:focus-visible, .intro-contact-message a:focus-visible { outline-color: #fff; }
-.layout-preview .intro-contact-region { display: none; }
 @media (max-width: 600px) {
   .intro-contact-region {
     --contact-padding: max(calc(3 * var(--ui-pixel)), calc(.8 * var(--viewport-inline-unit)));

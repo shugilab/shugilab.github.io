@@ -1,5 +1,5 @@
 import * as THREE from '../../vendor/three/three.module.js';
-import {FORCEPS_MODEL} from '../../models/laparoscopic-forceps/model-data.js?v=pages-candidate-20261104-1';
+import {FORCEPS_MODEL} from '../../models/laparoscopic-forceps/model-data.js?v=pages-candidate-20261104-9';
 
 const BLUE=new THREE.Color('#062479').toArray(),PINK=new THREE.Color('#e33671').toArray();
 let templates;

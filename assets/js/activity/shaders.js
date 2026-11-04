@@ -1,4 +1,4 @@
-import {surfacePointFragment} from './particle-rendering.js?v=pages-candidate-20261104-1';
+import {surfacePointFragment} from './particle-rendering.js?v=pages-candidate-20261104-9';
 
 // Particle position function. New GLSL effects belong here.
 // uGlitchStrength is intentionally zero until an effect is requested.
@@ -31,7 +31,6 @@ export const morph = /* glsl */`
     float angle = t * 2.4 + aSeed * 6.2831853;
     scatter.xz = mat2(cos(angle), -sin(angle), sin(angle), cos(angle)) * scatter.xz;
     p += scatter * dissolve * uScatterStrength;
-    p = mix(p, scatter * 3.4, arrival);
     p.x += sin(p.y * 15.0 + uTime * 3.0 + aSeed * 20.0) * uGlitchStrength * max(dissolve, arrival);
     vColor = mix(mix(aColor0, aColor1, stage), mix(aColor1, aColor2, stage), blend);
     vScatter = max(dissolve, arrival);
@@ -52,6 +51,8 @@ export const pointVertex = morph + /* glsl */`
   uniform float uPixelRatio;
   uniform float uPointScale;
   uniform float uJitterAmplitude;
+  uniform float uDepthSpan;
+  uniform vec2 uViewportWorldSize;
   void main() {
     vec3 p = morphPosition();
     float stage = step(1.0,uProgress);
@@ -62,9 +63,16 @@ export const pointVertex = morph + /* glsl */`
     vFeature = mix(mix(aFeature0,aFeature1,stage),mix(aFeature1,aFeature2,stage),t*t*(3.0-2.0*t));
     p += normalize(n+vec3(.000001))*sin(uTime*.7+aSeed*6.2831853)*uJitterAmplitude*(1.0-vScatter);
     vec4 view = modelViewMatrix * vec4(p, 1.0);
-    vDepth = clamp((view.z + 16.0) / 7.0, 0.0, 1.0);
+    float center=(modelViewMatrix*vec4(0.0,0.0,0.0,1.0)).z;
+    // The initial cloud lives in view space: its coverage is independent of
+    // the model's scale, rotation and right-aligned desktop placement.
+    float arrival=1.0-smoothstep(-1.0,0.0,uProgress);
+    vec3 cloud=vec3(aScatter.x/2.4*uViewportWorldSize.x,
+      aScatter.y/1.7*uViewportWorldSize.y,center+aScatter.z);
+    view.xyz=mix(view.xyz,cloud,arrival);
+    vDepth=clamp(.5+(view.z-center)/max(uDepthSpan,.001),0.0,1.0);
     gl_Position = projectionMatrix * view;
-    gl_PointSize = clamp(uPointSize*mix(.85,1.12,vFeature),.25,6.0)*uPointScale*uPixelRatio;
+    gl_PointSize = clamp(uPointSize*mix(.85,1.12,vFeature),.25,6.0)*uPointScale*uPixelRatio*mix(mix(.88,1.12,vDepth),1.0,vScatter);
   }
 `;
 

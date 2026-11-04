@@ -7,15 +7,15 @@
   <title>制作物 | 手技ラボ</title>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml" sizes="any">
-  <link rel="stylesheet" href="../assets/css/site.css?v=pages-candidate-20261104-1">
-  <script type="module" src="../assets/js/main.js?v=pages-candidate-20261104-1"></script>
-  <link rel="stylesheet" href="../assets/css/publication.css?v=pages-candidate-20261104-1">
+  <link rel="stylesheet" href="../assets/css/site.css?v=pages-candidate-20261104-9">
+  <script type="module" src="../assets/js/main.js?v=pages-candidate-20261104-9"></script>
+  <link rel="stylesheet" href="../assets/css/publication.css?v=pages-candidate-20261104-9">
 </head>
 <body>
   <div id="page" aria-busy="false">
     <header class="site-header site-header-menu">
       <a class="brand" href="../" aria-label="手技ラボ トップページ">
-        <img src="../assets/images/shugilab_home.svg?v=pages-candidate-20261104-1" width="174" height="58" alt="手技ラボ">
+        <img src="../assets/images/shugilab_home.svg?v=pages-candidate-20261104-9" width="174" height="58" alt="手技ラボ">
         <span class="brand-affiliation" aria-hidden="true"><span class="publication-redacted">●</span><span class="publication-redacted">●</span><span class="publication-redacted">●</span><span class="publication-redacted">●</span><span class="publication-redacted">●</span><span class="publication-redacted">●</span><span class="brand-affiliation-space"></span><span>学</span><span>生</span><span>サ</span><span>ー</span><span>ク</span><span>ル</span></span>
       </a>
       <button class="menu-toggle" type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="site-navigation" hidden>
@@ -24,7 +24,7 @@
       <nav id="site-navigation" class="site-nav" aria-label="メインメニュー">
             <a href="../about/">サークル紹介</a>
             <a href="../activities/">活動報告</a>
-            <a href="../play/">活動を体験</a>
+            <a class="nav-play" href="../play/">活動を体験<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" class="nav-controller" fill="currentColor" aria-hidden="true" focusable="false"><path d="M181.23-220q-40.73 0-63.1-28.77-22.36-28.77-16.9-67.84L144-618.92q7.84-52.64 46.57-86.86Q229.31-740 282-740h396q52.69 0 91.43 34.22 38.73 34.22 46.57 86.86l42.77 302.31q5.46 39.07-16.9 67.84Q819.5-220 778.77-220q-17.15 0-31.5-5.77-14.35-5.77-26.65-18.08L624.46-340H335.54l-96.16 96.15q-12.3 12.31-26.65 18.08-14.35 5.77-31.5 5.77Zm16-66 114-114h337.54l114 114q2 2 15.23 6 11 0 17.5-6.5T800-304l-44.12-308q-4.02-29-26.14-48.5T678-680H282q-29.62 0-51.74 19.5T204.12-612L160-304q-2 11 4.5 17.5T182-280q2.77 0 15.23-6ZM680-443.85q15.08 0 25.62-10.53 10.53-10.54 10.53-25.62 0-15.08-10.53-25.62-10.54-10.53-25.62-10.53-15.08 0-25.62 10.53-10.53 10.54-10.53 25.62 0 15.08 10.53 25.62 10.54 10.53 25.62 10.53Zm-80-120q15.08 0 25.62-10.53 10.53-10.54 10.53-25.62 0-15.08-10.53-25.62-10.54-10.53-25.62-10.53-15.08 0-25.62 10.53-10.53 10.54-10.53 25.62 0 15.08 10.53 25.62 10.54 10.53 25.62 10.53ZM480-480Zm-163.85-36.15V-470q0 10.33 6.76 17.09 6.75 6.76 17.07 6.76 10.33 0 17.1-6.76 6.77-6.76 6.77-17.09v-46.15H410q10.33 0 17.09-6.76 6.76-6.75 6.76-17.07 0-10.33-6.76-17.1-6.76-6.77-17.09-6.77h-46.15V-610q0-10.33-6.76-17.09-6.75-6.76-17.07-6.76-10.33 0-17.1 6.76-6.77 6.76-6.77 17.09v46.15H270q-10.33 0-17.09 6.76-6.76 6.75-6.76 17.07 0 10.33 6.76 17.1 6.76 6.77 17.09 6.77h46.15Z" /><circle class="controller-control" cx="680" cy="-480" r="40" /><circle class="controller-control" cx="600" cy="-600" r="40" /></svg></a>
             <a href="../works/" aria-current="page">制作物</a>
             <a href="../contact/">お問い合わせ</a>
         </nav>
@@ -34,7 +34,31 @@
         <h1>制作物</h1>
         <p class="empty-state">制作物はまだ登録されていません。</p>
     </main>
-    <footer class="site-footer"><span>手技ラボ</span><a href="../contact/">お問い合わせ</a></footer>
+    <footer class="site-footer" id="site-footer">
+      <div class="footer-main">
+        <div class="footer-identity">
+          <a class="footer-brand" href="../" aria-label="手技ラボ ホームへ">
+            <img src="../assets/images/shugilab_home.svg" width="436" height="145" alt="SHUGILAB">
+          </a>
+          <p>学生サークル 手技ラボ</p>
+        </div>
+        <nav class="footer-nav" aria-label="フッターメニュー">
+          <a href="../about/">サークル紹介</a>
+          <a href="../activities/">活動報告</a>
+          <a href="../play/">活動を体験</a>
+          <a href="../works/">制作物</a>
+        </nav>
+        <div class="footer-contact">
+          <p>企業・団体との共同企画や、<br>体験会・イベントについてのご相談はこちらから。</p>
+          <a href="../contact/#collaboration">ご相談・お問い合わせ</a>
+          <a href="../contact/#visit">見学・参加について</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <small>© SHUGILAB</small>
+        <a class="footer-top-link" href="#page">ページ上部へ</a>
+      </div>
+    </footer>
   </div>
 </body>
 </html>

@@ -1,14 +1,15 @@
 import * as THREE from '../../vendor/three/three.module.js';
-import { createActivityModels } from './models.js?v=pages-candidate-20261104-1';
-import { pointVertex, pointFragment } from './shaders.js?v=pages-candidate-20261104-1';
-import {PARTICLE_STYLE,particleUniforms,createSurfaceDepthPass,particleDisplayScale} from './particle-rendering.js?v=pages-candidate-20261104-1';
-import {readParticleSettings,particleCount} from './particle-settings.js?v=pages-candidate-20261104-1';
+import { createActivityModels } from './models.js?v=pages-candidate-20261104-9';
+import { pointVertex, pointFragment } from './shaders.js?v=pages-candidate-20261104-9';
+import {PARTICLE_STYLE,particleUniforms,createSurfaceDepthPass,particleDisplayScale} from './particle-rendering.js?v=pages-candidate-20261104-9';
+import {readParticleSettings,particleCount} from './particle-settings.js?v=pages-candidate-20261104-9';
 
 const clamp = value => Math.max(0, Math.min(1, value));
 const smooth = value => { const t = clamp(value); return t*t*(3-2*t); };
 // Equal morph budgets concentrate more points on the narrow instruments.
 // Composite opacity caps that buildup without changing geometry or brand colors.
 const MODEL_OPACITY = [.4, .42, .55];
+const CLOUD_OVERSCAN=1.2;
 
 function scatterData(count) {
   const scatter = new Float32Array(count * 3), seeds = new Float32Array(count);
@@ -42,12 +43,11 @@ export function initActivityScene(root) {
   const visual = root.querySelector('[data-scene-visual]');
   const news = document.querySelector('.home-featured');
   const chapters = [...root.querySelectorAll('[data-scene-step]')];
-  const links = [...root.querySelectorAll('[data-scene-link]')];
-  const compact = matchMedia('(max-width: 720px)').matches;
   const compactViewport = matchMedia('not all and (min-aspect-ratio: 3/2)');
-  const settings=readParticleSettings({compact});
-  const models = createActivityModels({ pointCount: particleCount(compact?6500:12000,settings.density), retainSurfaces:true, contourRatio:settings.contourRatio });
-  const depthPass=createSurfaceDepthPass(models.map(model=>model.surfaces));
+  let samplingCompact=compactViewport.matches;
+  const settings=readParticleSettings({compact:samplingCompact});
+  let models = createActivityModels({ pointCount: particleCount(samplingCompact?6500:6000,settings.density), retainSurfaces:true });
+  let depthPass=createSurfaceDepthPass(models.map(model=>model.surfaces));
   models.forEach(model=>{model.surfaces.forEach(surface=>surface.geometry.dispose());delete model.surfaces;});
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-6, 6, 4.2, -4.2, .1, 40);
@@ -61,8 +61,9 @@ export function initActivityScene(root) {
     uGlitchStrength: { value: 0 },
     uPointSize: { value: settings.size },
     uPixelRatio: { value: 1 },
+    uViewportWorldSize: {value:new THREE.Vector2(1,1)},
   };
-  const pointGeometry = geometryFor(models);
+  let pointGeometry = geometryFor(models);
   const pointMaterial = new THREE.ShaderMaterial({
     uniforms: { ...uniforms, uOpacity: { value: 1 } },
     vertexShader: pointVertex, fragmentShader: pointFragment,
@@ -106,7 +107,7 @@ export function initActivityScene(root) {
   // still show the three silhouettes and reversible scroll transitions.
   const projection = new THREE.Matrix4();
   const normalMatrix = new THREE.Matrix3();
-  const scratch = new Float32Array(6);
+  const scratch = new Float32Array(8);
   const blue=new THREE.Color(PARTICLE_STYLE.blue),pink=new THREE.Color(PARTICLE_STYLE.pink);
   const fallbackColors=Array.from({length:9},(_,i)=>blue.clone().lerp(pink,i/8).getStyle());
   function cpuPosition(geometry, index) {
@@ -119,9 +120,9 @@ export function initActivityScene(root) {
     const seed = geometry.getAttribute('aSeed').array[index], offset = index*3;
     const angle = t*2.4 + seed*Math.PI*2, cos = Math.cos(angle), sin = Math.sin(angle);
     const sx=cos*scatter[offset]+sin*scatter[offset+2],sy=scatter[offset+1],sz=-sin*scatter[offset]+cos*scatter[offset+2];
-    let x = (from[offset] + (to[offset]-from[offset])*blend + sx*dissolve*uniforms.uScatterStrength.value)*(1-arrival)+sx*3.4*arrival;
-    let y = (from[offset+1] + (to[offset+1]-from[offset+1])*blend + sy*dissolve*uniforms.uScatterStrength.value)*(1-arrival)+sy*3.4*arrival;
-    let z = (from[offset+2] + (to[offset+2]-from[offset+2])*blend + sz*dissolve*uniforms.uScatterStrength.value)*(1-arrival)+sz*3.4*arrival;
+    let x = from[offset] + (to[offset]-from[offset])*blend + sx*dissolve*uniforms.uScatterStrength.value;
+    let y = from[offset+1] + (to[offset+1]-from[offset+1])*blend + sy*dissolve*uniforms.uScatterStrength.value;
+    let z = from[offset+2] + (to[offset+2]-from[offset+2])*blend + sz*dissolve*uniforms.uScatterStrength.value;
     const normalsA = geometry.getAttribute(`aNormal${stage}`).array;
     const normalsB = geometry.getAttribute(`aNormal${stage+1}`).array;
     const nx=normalsA[offset]+(normalsB[offset]-normalsA[offset])*blend;
@@ -134,6 +135,12 @@ export function initActivityScene(root) {
     scratch[0] = ((m[0]*x+m[4]*y+m[8]*z+m[12])/w*.5+.5)*width;
     scratch[1] = (-(m[1]*x+m[5]*y+m[9]*z+m[13])/w*.5+.5)*height;
     scratch[2] = (m[2]*x+m[6]*y+m[10]*z+m[14])/w*.5+.5;
+    const c=camera.matrixWorldInverse.elements,g=group.matrixWorld.elements;
+    const center=c[2]*g[12]+c[6]*g[13]+c[10]*g[14]+c[14];
+    const cloudDepth=(camera.projectionMatrix.elements[10]*(center+scatter[offset+2])+camera.projectionMatrix.elements[14])*.5+.5;
+    scratch[0]=scratch[0]*(1-arrival)+(scatter[offset]/2.4*CLOUD_OVERSCAN+.5)*width*arrival;
+    scratch[1]=scratch[1]*(1-arrival)+(.5-scatter[offset+1]/1.7*CLOUD_OVERSCAN)*height*arrival;
+    scratch[2]=scratch[2]*(1-arrival)+cloudDepth*arrival;
     const n=normalMatrix.elements;
     const vx=n[0]*nx+n[3]*ny+n[6]*nz,vy=n[1]*nx+n[4]*ny+n[7]*nz,vz=n[2]*nx+n[5]*ny+n[8]*nz;
     scratch[3]=vz/Math.max(.0001,Math.hypot(vx,vy,vz));
@@ -141,6 +148,9 @@ export function initActivityScene(root) {
     scratch[4]=featuresA[index]+(featuresB[index]-featuresA[index])*blend;
     const colorsA=geometry.getAttribute(`aColor${stage}`).array,colorsB=geometry.getAttribute(`aColor${stage+1}`).array;
     scratch[5]=(colorsA[offset]+(colorsB[offset]-colorsA[offset])*blend-blue.r)/(pink.r-blue.r);
+    const viewZ=group.matrixWorld.elements[2]*x+group.matrixWorld.elements[6]*y+group.matrixWorld.elements[10]*z;
+    scratch[6]=clamp(.5+(viewZ*(1-arrival)+scatter[offset+2]*arrival)/uniforms.uDepthSpan.value);
+    scratch[7]=Math.max(dissolve,arrival);
     return scratch;
   }
 
@@ -158,11 +168,11 @@ export function initActivityScene(root) {
       if(p[0]<0||p[1]<0||p[0]>=width||p[1]>=height)continue;
       const hidden=mask&&p[2]>mask.data[Math.floor(p[1]/height*mask.height)*mask.width+Math.floor(p[0]/width*mask.width)]+.016/(camera.far-camera.near);
       const rim=Math.max(Math.pow(1-clamp(p[3]),1.7),p[4]*.6);
-      const visibility=(1-strength+strength*(hidden?0:smooth((p[3]+.012)/.037)))*(.85+.15*rim);
+      const visibility=(1-strength+strength*(hidden?0:smooth((p[3]+.012)/.037)))*(.85+.15*rim)*((.70+.30*p[6])*(1-p[7])+p[7]);
       if(visibility<.05)continue;
       const shade=Math.round(clamp(p[5])*(levels-1));
       const path = paths[shade*alphas+Math.min(alphas-1,Math.floor(visibility*alphas))];
-      const radius=uniforms.uPointSize.value*uniforms.uPointScale.value*(.85+.27*p[4])*.43;
+      const radius=uniforms.uPointSize.value*uniforms.uPointScale.value*(.85+.27*p[4])*.43*((.88+.24*p[6])*(1-p[7])+p[7]);
       path.moveTo(p[0]+radius,p[1]); path.arc(p[0],p[1],radius,0,Math.PI*2);
     }
     for(let shade=0;shade<levels;shade++)for(let alpha=0;alpha<alphas;alpha++){
@@ -200,6 +210,13 @@ export function initActivityScene(root) {
   }
 
   function resize() {
+    if(samplingCompact!==compactViewport.matches) {
+      samplingCompact=compactViewport.matches;
+      const nextModels=createActivityModels({pointCount:particleCount(samplingCompact?6500:6000,settings.density),retainSurfaces:true});
+      depthPass.dispose();depthPass=createSurfaceDepthPass(nextModels.map(model=>model.surfaces));
+      nextModels.forEach(model=>{model.surfaces.forEach(surface=>surface.geometry.dispose());delete model.surfaces;});
+      models=nextModels;pointGeometry.dispose();pointGeometry=geometryFor(models);points.geometry=pointGeometry;
+    }
     const rect = visual.getBoundingClientRect();
     width = Math.max(1, rect.width); height = Math.max(1, rect.height);
     ratio = Math.min(devicePixelRatio || 1, 1.75, Math.sqrt(2200000/(width*height)));
@@ -209,11 +226,13 @@ export function initActivityScene(root) {
     const halfHeight = 4.2, worldWidth = halfHeight*2*width/height;
     camera.left = -worldWidth/2; camera.right = worldWidth/2;
     camera.top = halfHeight; camera.bottom = -halfHeight; camera.updateProjectionMatrix();
+    uniforms.uViewportWorldSize.value.set(worldWidth*CLOUD_OVERSCAN,halfHeight*2*CLOUD_OVERSCAN);
     const mobile = width < 720;
     const centered = compactViewport.matches;
     group.scale.setScalar(mobile ? Math.min(.85,worldWidth*.96/7.1) : Math.min(1,worldWidth*.53/7.1));
     group.position.set(centered ? 0 : worldWidth*.215, mobile ? -1.3 : .16, 0);
-    uniforms.uPointScale.value=particleDisplayScale(6.15*group.scale.x*height/(camera.top-camera.bottom));
+    uniforms.uPointScale.value=particleDisplayScale(6.15*group.scale.x*height/(camera.top-camera.bottom),{compact:compactViewport.matches});
+    uniforms.uDepthSpan.value=6.15*group.scale.x;
     const natural = chapters.map(chapter => { const r = chapter.getBoundingClientRect(); return r.top+scrollY+r.height/2; });
     const first = natural[0], last = natural.at(-1);
     // Content-sized chapters may fit in less than a tall viewport. Compress
@@ -228,6 +247,9 @@ export function initActivityScene(root) {
 
   function draw() {
     uniforms.uProgress.value = current;
+    // A free cloud is centered on every screen. Only the first assembly moves
+    // it into the right-hand desktop composition; later morphs stay there.
+    group.position.x=compactViewport.matches?0:(camera.right-camera.left)*.215*smooth(current+1);
     const stage=Math.min(1,Math.floor(Math.max(0,current))), blend=smooth(current-stage);
     canvas.style.opacity=String(MODEL_OPACITY[stage]+(MODEL_OPACITY[stage+1]-MODEL_OPACITY[stage])*blend);
     // Bounded idle rotation reveals thickness without leaving thin instruments
@@ -254,7 +276,6 @@ export function initActivityScene(root) {
     if (step !== active) {
       active = step; root.dataset.activeStep = String(step);
       chapters.forEach((chapter,i) => chapter.classList.toggle('is-active',i === step));
-      links.forEach((link,i) => { if(i === step)link.setAttribute('aria-current','step');else link.removeAttribute('aria-current'); });
     }
     root.dataset.progress = current.toFixed(4);
   }

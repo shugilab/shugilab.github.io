@@ -7,8 +7,13 @@ export const PARTICLE_STYLE = {
 // The HOME model is 6.15 units across, viewed through an 8.4-unit camera.
 // Preserve its particle/model proportions relative to a 768px-high view.
 export const PARTICLE_REFERENCE_EXTENT = 6.15*768/8.4;
-export function particleDisplayScale(projectedExtent) {
+export function particleModelScale(projectedExtent) {
   return Number.isFinite(projectedExtent)&&projectedExtent>0?projectedExtent/PARTICLE_REFERENCE_EXTENT:1;
+}
+export function particleDisplayScale(projectedExtent,{compact=false}={}) {
+  // Phones/tablets keep a stable CSS-pixel diameter. Wide layouts retain
+  // proportional model scaling, with twice the previous particle diameter.
+  return .6*(compact?1:2*particleModelScale(projectedExtent));
 }
 
 // Both HOME and the model lab use this shading and the same depth prepass.
@@ -22,6 +27,7 @@ export const surfacePointFragment = /* glsl */`
   varying float vFacing;
   varying float vScatter;
   varying float vFeature;
+  varying float vDepth;
   void main() {
     float circle = 1.0 - smoothstep(.4, .5, length(gl_PointCoord - .5));
     if (circle < .01) discard;
@@ -31,7 +37,8 @@ export const surfacePointFragment = /* glsl */`
     float visibility = mix(1.0, (1.0-hidden)*front, uMaskStrength);
     float rim = max(pow(1.0-clamp(vFacing,0.0,1.0), 1.7),vFeature*.6);
     vec3 color = vColor;
-    float alpha = circle*uOpacity*visibility*mix(.85,1.0,rim)*(1.0-vScatter*.16);
+    float depthFade=mix(.70,1.0,vDepth);
+    float alpha = circle*uOpacity*visibility*mix(.85,1.0,rim)*mix(depthFade,1.0,vScatter)*(1.0-vScatter*.16);
     if(alpha < .008) discard;
     gl_FragColor = vec4(color, alpha);
     #include <colorspace_fragment>
@@ -44,6 +51,7 @@ export function particleUniforms() {
     uDepthBias: {value:.0001}, uMaskStrength: {value:1}, uOpacity: {value:.9},
     uPointSize: {value:PARTICLE_STYLE.size}, uPixelRatio: {value:1},
     uPointScale: {value:1},
+    uDepthSpan: {value:6.15},
     uTime: {value:0}, uJitterAmplitude: {value:PARTICLE_STYLE.jitter},
   };
 }

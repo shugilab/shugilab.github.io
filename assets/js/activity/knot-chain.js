@@ -1,5 +1,5 @@
 import * as THREE from '../../vendor/three/three.module.js';
-import {createHalfKnotStack,HALF_KNOT_DATA} from './half-knot.js?v=pages-candidate-20261104-1';
+import {createHalfKnotStack,HALF_KNOT_DATA} from './half-knot.js?v=pages-candidate-20261104-9';
 
 export const KNOT_CHAIN=Object.freeze({
   count:3,
@@ -64,7 +64,17 @@ function attachment(halves,settings) {
   path.add(new THREE.CubicBezierCurve3(last,
     last.clone().addScaledVector(loop.getTangent(1),.018),
     pinkPort.clone().addScaledVector(pink.getTangent(0),-.005),pinkPort));
-  path.arcLengthDivisions=900;return path;
+  path.arcLengthDivisions=900;
+  // The color join is on the far side of the rubber bands, away from the
+  // knots. It never interrupts either visible strand at the first throw.
+  let best=0,bestZ=Infinity;
+  for(let i=0;i<=512;i++) { const z=path.getPointAt(i/512).z;if(z<bestZ){bestZ=z;best=i/512;} }
+  let low=Math.max(0,best-1/512),high=Math.min(1,best+1/512);
+  for(let i=0;i<20;i++) {
+    const a=low+(high-low)/3,b=high-(high-low)/3;
+    if(path.getPointAt(a).z<path.getPointAt(b).z)high=b;else low=a;
+  }
+  path.colorBoundary=(low+high)/2;return path;
 }
 
 export function createKnotChain() {
