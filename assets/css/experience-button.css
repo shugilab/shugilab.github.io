@@ -1,0 +1,24 @@
+/* A compact label and Google Material Symbols controller, without decoration. */
+.experience-button {
+  --button-unit: var(--home-unit, calc(1 * var(--ui-pixel)));
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(44 * var(--button-unit));
+  padding: 0;
+  color: var(--blue);
+  font-size: calc(14 * var(--button-unit));
+  font-weight: 400;
+  line-height: 1.5;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.experience-button__content { display: inline-flex; align-items: center; gap: 0; }
+.experience-button__label { text-decoration: underline; text-underline-offset: .25em; text-decoration-thickness: var(--button-unit); }
+.experience-button__controller { display: block; flex: none; width: calc(28 * var(--button-unit)); height: calc(28 * var(--button-unit)); }
+.experience-button__controller .controller-control { fill: var(--pink); }
+.experience-button:hover .experience-button__label { color: var(--pink); }
+.experience-button:focus-visible { outline: calc(2 * var(--button-unit)) solid var(--blue); outline-offset: calc(4 * var(--button-unit)); }
+.experience-button:active { opacity: .8; }

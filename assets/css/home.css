@@ -1,0 +1,307 @@
+/* Only HOME extends its artwork/color into the browser's background. */
+.home-document, .home-page { background: var(--browser-background, var(--blue)); }
+.home-page {
+  /* 20px / 1.15vw: the first desktop size cap starts near 1740 CSS px.
+     Above that point, one shared unit preserves the composition's ratios. */
+  --home-reference-width: 1740;
+  --home-unit: max(calc(1 * var(--ui-pixel)), calc(calc(100 * var(--viewport-inline-unit)) / var(--home-reference-width)));
+  font-size: calc(16 * var(--home-unit));
+  --feature-paper: #e9edf5;
+  --intro-height: calc(100 * var(--viewport-block-unit));
+  --intro-min-ratio: 1;
+}
+.home-page #page { display: block; position: relative; isolation: isolate; }
+.home-page .site-footer { position: relative; z-index: 3; gap: calc(20 * var(--home-unit)); padding-block: calc(22 * var(--home-unit)) calc(30 * var(--home-unit)); border-top-width: var(--home-unit); background: var(--paper); font-size: calc(12 * var(--home-unit)); }
+@media (min-width: 1740px) {
+  .home-page .site-footer { width: min(calc(100% - 48 * var(--home-unit)), calc(1040 * var(--home-unit))); }
+}
+.home-page .site-header {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 5;
+  width: 100%;
+  padding: calc(28 * var(--home-unit) + env(safe-area-inset-top, 0px)) max(clamp(calc(24 * var(--home-unit)), calc(5 * var(--viewport-inline-unit)), calc(88 * var(--home-unit))), env(safe-area-inset-right, 0px)) calc(28 * var(--home-unit)) max(clamp(calc(24 * var(--home-unit)), calc(5 * var(--viewport-inline-unit)), calc(88 * var(--home-unit))), env(safe-area-inset-left, 0px));
+  gap: calc(28 * var(--home-unit));
+  flex-direction: row;
+  align-items: center;
+  border: 0;
+  color: #fff;
+}
+.home-page .brand { --brand-width: calc(174 * var(--home-unit)); }
+.home-page .brand img { width: var(--brand-width); }
+.home-page .site-nav { gap: calc(12 * var(--home-unit)) calc(24 * var(--home-unit)); font-size: calc(14 * var(--home-unit)); }
+.home-page .site-nav a { padding-block: calc(5 * var(--home-unit)); }
+.home-page .site-nav a:hover { border-color: #fff; }
+.home-page .site-header :focus-visible { outline-color: #fff; }
+@media (max-aspect-ratio: 3/2), (max-width: 720px), (hover: none) and (pointer: coarse) {
+  .home-page .site-nav a { text-decoration: underline; text-decoration-thickness: calc(1 * var(--ui-pixel)); text-underline-offset: .3em; text-decoration-color: rgb(255 255 255 / 75%); }
+}
+.home-intro {
+  --intro-split: .6685;
+  --intro-seam: calc(var(--intro-height) * var(--intro-split));
+  --intro-lower-height: calc(var(--intro-height) - var(--intro-seam));
+  --intro-diagonal-start: .17;
+  --intro-diagonal-run: .63;
+  --intro-slope: .9;
+  --intro-top-bleed: max(calc(64 * var(--ui-pixel)), env(safe-area-inset-top, 0px));
+  --intro-bleed-x: calc(var(--intro-top-bleed) * var(--intro-slope));
+  /* One shared horizontal gap on both sides of the trapezoid. */
+  --contact-side-gap: calc(1 * var(--viewport-inline-unit));
+  --contact-diagonal-gap: var(--contact-side-gap);
+  --contact-right-gap: var(--contact-side-gap);
+  --photo-fade: clamp(calc(160 * var(--home-unit)), calc(24 * var(--viewport-block-unit)), calc(280 * var(--home-unit)));
+  position: relative;
+  z-index: 3;
+  isolation: isolate;
+  height: calc(var(--intro-height) + var(--photo-fade));
+  background: var(--blue);
+  color: #fff;
+}
+.home-intro-art { position: absolute; inset: calc(-1 * var(--intro-top-bleed)) 0 0; z-index: -1; overflow: hidden; }
+.intro-panel { position: absolute; width: 100%; overflow: hidden; }
+.intro-photo { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* One straight diagonal continues through both photo panels and the fade. */
+.intro-panel-peg {
+  top: 0;
+  height: calc(var(--intro-seam) + var(--intro-top-bleed));
+  clip-path: polygon(calc(var(--intro-diagonal-start) * 100% - var(--intro-bleed-x)) 0, 100% 0, 100% 100%, calc((var(--intro-diagonal-start) + var(--intro-diagonal-run) * var(--intro-split)) * 100%) 100%);
+}
+.intro-panel-peg .intro-photo { position: absolute; top: var(--intro-top-bleed); height: var(--intro-seam); object-position: center top; }
+/* Reflect only the top image strip into the browser's obscured/overscroll area.
+   The photo crop and the diagonal inside the page stay unchanged. */
+.intro-panel-peg::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--intro-top-bleed);
+  background: var(--intro-photo-source, url("../images/home/peg-transfer-2-960.svg")) center top / max(calc(100 * var(--viewport-inline-unit)), calc(var(--intro-seam) * 1.5)) auto no-repeat;
+  transform: scaleY(-1);
+}
+.intro-panel-instruments {
+  top: calc(var(--intro-seam) + var(--intro-top-bleed));
+  height: calc(var(--intro-lower-height) + var(--photo-fade));
+  /* Extend one straight edge past the fade; no vertex at the viewport bottom. */
+  clip-path: polygon(0 0, calc((var(--intro-diagonal-start) + var(--intro-diagonal-run) * var(--intro-split)) * 100%) 0, calc((var(--intro-diagonal-start) + var(--intro-diagonal-run) * (var(--intro-split) + 1)) * 100%) var(--intro-height), 0 var(--intro-height));
+}
+.intro-panel-instruments .intro-photo { object-position: center 95%; }
+.intro-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(6 36 121 / 55%);
+  pointer-events: none;
+}
+/* End on a solid stretch of the exact next-section color. Extending the
+   overlay past the edge covers fractional-device-pixel rounding gaps. */
+.home-intro::after {
+  content: "";
+  position: absolute;
+  top: var(--intro-height);
+  bottom: calc(-2 * var(--ui-pixel));
+  inset-inline: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom,
+    rgb(233 237 245 / 0%),
+    rgb(233 237 245 / 20%) 22%,
+    rgb(233 237 245 / 71%) 61%,
+    rgb(233 237 245 / 94%) 80%,
+    var(--feature-paper) 92%, var(--feature-paper));
+}
+/* Each row advances by the exact horizontal run of the photo's diagonal.
+   Its starting edge therefore follows the blue face instead of a text box. */
+.intro-heading {
+  --heading-top: .25;
+  --heading-leading: 1.75;
+  position: absolute;
+  top: max(calc(var(--intro-height) * var(--heading-top)), calc(env(safe-area-inset-top, 0px) + calc(84 * var(--ui-pixel))));
+  width: 100%;
+  margin: 0;
+  font-size: clamp(calc(16 * var(--ui-pixel)), calc(2.5 * var(--viewport-inline-unit)), calc(44 * var(--ui-pixel)));
+  font-weight: 500;
+  line-height: var(--heading-leading);
+  letter-spacing: .035em;
+  text-shadow: 0 calc(1 * var(--ui-pixel)) calc(12 * var(--ui-pixel)) rgb(6 36 121 / 30%);
+}
+.intro-heading span {
+  display: block;
+  padding-left: calc(var(--heading-start, calc(33 * var(--viewport-inline-unit))) + var(--intro-slope) * var(--heading-leading) * 1em * var(--heading-row) + var(--contact-diagonal-gap));
+  white-space: nowrap;
+}
+.intro-heading span:first-child { --heading-row: 1; }
+.intro-heading span:last-child { --heading-row: 2; }
+/* The panel's left edge is line 2 translated horizontally by one gap.
+   The same geometry drives the virtual panel edge and text exclusion. */
+.intro-contact-region {
+  --contact-slant: calc(calc(100 * var(--viewport-inline-unit)) * var(--intro-diagonal-run) * (1 - var(--intro-split)));
+  --contact-bottom-width: calc(calc(100 * var(--viewport-inline-unit)) * (1 - var(--intro-diagonal-start) - var(--intro-diagonal-run)) - var(--contact-diagonal-gap) - var(--contact-right-gap));
+  --contact-padding: clamp(calc(8 * var(--home-unit)), calc(1 * var(--viewport-inline-unit)), calc(20 * var(--home-unit)));
+  --contact-gap: clamp(calc(6 * var(--home-unit)), calc(.8 * var(--viewport-inline-unit)), calc(16 * var(--home-unit)));
+  --contact-label-size: min(clamp(calc(8 * var(--home-unit)), calc(.9 * var(--viewport-inline-unit)), calc(14 * var(--home-unit))), calc(var(--contact-qr-size) / 4.8));
+  --contact-qr-size: min(calc(180 * var(--home-unit)), calc(var(--intro-lower-height) * .5), calc(var(--contact-bottom-width) - var(--contact-padding) * 2 - var(--contact-gap)));
+  --contact-qr-height: calc(var(--contact-qr-size) + var(--contact-gap) + var(--contact-label-size) * 1.4);
+  position: absolute;
+  top: var(--intro-seam);
+  left: calc(calc(100 * var(--viewport-inline-unit)) * (var(--intro-diagonal-start) + var(--intro-diagonal-run) * var(--intro-split)) + var(--contact-diagonal-gap));
+  right: var(--contact-right-gap);
+  height: var(--intro-lower-height);
+  color: #fff;
+}
+.intro-contact-copy {
+  position: absolute;
+  left: 0;
+  right: calc(var(--contact-padding) + var(--contact-qr-size) + var(--contact-gap) * 2 + var(--home-unit));
+  top: var(--contact-copy-top, 25%);
+  height: var(--contact-copy-height, 50%);
+  font-size: var(--contact-copy-font, clamp(calc(13 * var(--home-unit)), calc(1.15 * var(--viewport-inline-unit)), calc(20 * var(--home-unit))));
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.intro-contact-copy::before {
+  content: "";
+  float: left;
+  width: var(--contact-flow-end, calc(var(--contact-slant) * .75 + var(--contact-padding)));
+  height: var(--contact-flow-height, 100%);
+  shape-outside: polygon(0 0, var(--contact-flow-start, calc(var(--contact-slant) * .25 + var(--contact-padding))) 0, 100% 100%, 0 100%) border-box;
+}
+.intro-contact-copy p { margin: 0; }
+.intro-contact-copy p + p { margin-top: var(--contact-gap); }
+.intro-contact-copy p.is-distributed { text-align: justify; text-align-last: justify; text-justify: inter-character; }
+.intro-center-short { display: none; justify-content: space-between; width: var(--contact-abbr-width, auto); text-decoration: none; }
+.intro-contact-divider {
+  position: absolute;
+  right: calc(var(--contact-padding) + var(--contact-qr-size) + var(--contact-gap));
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--home-unit);
+  height: min(calc(100% - var(--contact-padding) * 2), max(var(--contact-copy-height, 50%), var(--contact-qr-height)));
+  background: rgb(255 255 255 / 55%);
+}
+.intro-qr-group {
+  position: absolute;
+  right: var(--contact-padding);
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--contact-qr-size);
+}
+.intro-instagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: var(--contact-gap);
+  color: inherit;
+  text-decoration: none;
+  text-align: center;
+  font-size: var(--contact-label-size);
+  line-height: 1.4;
+}
+.intro-instagram img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.intro-instagram .intro-instagram-icon { display: none; }
+.intro-instagram:active { opacity: .75; }
+.intro-instagram span { display: inline-flex; align-items: center; gap: .3em; white-space: nowrap; text-decoration: underline; text-underline-offset: .25em; }
+.intro-instagram svg { width: .9em; height: .9em; flex: none; }
+.intro-instagram:hover span { text-decoration: underline; text-underline-offset: .2em; }
+.intro-instagram:focus-visible, .intro-contact-message a:focus-visible { outline-color: #fff; }
+.layout-preview .intro-contact-region { display: none; }
+@media (max-width: 600px) {
+  .intro-contact-region {
+    --contact-padding: max(calc(3 * var(--ui-pixel)), calc(.8 * var(--viewport-inline-unit)));
+    --contact-gap: calc(4 * var(--ui-pixel));
+    --contact-qr-size: min(calc(10 * var(--viewport-inline-unit)), calc(var(--intro-lower-height) * .25));
+  }
+  .intro-contact-copy { font-size: var(--contact-copy-font, clamp(calc(10 * var(--ui-pixel)), calc(2.8 * var(--viewport-inline-unit)), calc(12 * var(--ui-pixel)))); line-height: 1.6; }
+  .intro-center-full { display: none; }
+  .intro-center-short { display: inline-flex; }
+}
+@media (min-width: 601px) and (max-height: 480px) {
+  .intro-contact-copy { font-size: var(--contact-copy-font, calc(11 * var(--ui-pixel))); line-height: 1.4; }
+}
+/* Let the solid end of ::after overlap the following white section by 2px.
+   Clipping it at a fractional device pixel can expose a dark compositor seam. */
+.home-featured { position: relative; background: var(--feature-paper); }
+.home-featured::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: url("../images/shugilab_pattern.svg") repeat center top / calc(640 * var(--home-unit)) calc(400 * var(--home-unit));
+  opacity: .055;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 calc(48 * var(--home-unit)));
+  mask-image: linear-gradient(to bottom, transparent, #000 calc(48 * var(--home-unit)));
+  pointer-events: none;
+}
+.home-featured::after { content: ""; position: absolute; z-index: 0; inset: auto 0 calc(-2 * var(--home-unit)); height: calc(122 * var(--home-unit)); background: linear-gradient(to bottom, rgb(255 255 255 / 0%), #fff 90%, #fff); pointer-events: none; }
+.featured-inner { position: relative; z-index: 2; width: min(calc(100% - 64 * var(--home-unit)), calc(960 * var(--home-unit))); margin-inline: auto; }
+.featured-news { min-height: clamp(calc(300 * var(--home-unit)), calc(48 * var(--viewport-block-unit)), calc(520 * var(--home-unit))); padding-block: calc(40 * var(--home-unit)) calc(120 * var(--home-unit)); }
+.featured-placeholder { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; gap: clamp(calc(24 * var(--home-unit)), calc(4 * var(--viewport-inline-unit)), calc(56 * var(--home-unit))); }
+.featured-photo-placeholder { display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; border: var(--home-unit) solid var(--line); background: var(--paper); color: rgb(93 113 168); font-size: calc(12 * var(--home-unit)); }
+.featured-copy-placeholder p { margin: 0 0 calc(24 * var(--home-unit)); font-size: clamp(calc(16 * var(--home-unit)), calc(1.8 * var(--viewport-inline-unit)), calc(22 * var(--home-unit))); font-weight: 500; }
+.featured-placeholder-lines { display: grid; gap: calc(14 * var(--home-unit)); }
+.featured-placeholder-lines span { display: block; height: calc(6 * var(--home-unit)); background: rgb(6 36 121 / 9%); }
+.featured-placeholder-lines span:last-child { width: 72%; }
+.featured-more { display: block; width: fit-content; margin: calc(28 * var(--home-unit)) 0 0 auto; font-size: calc(14 * var(--home-unit)); }
+
+@media (max-width: 720px) {
+  .home-page .site-header { padding: calc(calc(20 * var(--ui-pixel)) + env(safe-area-inset-top, 0px)) max(calc(20 * var(--ui-pixel)), env(safe-area-inset-right, 0px)) calc(20 * var(--ui-pixel)) max(calc(20 * var(--ui-pixel)), env(safe-area-inset-left, 0px)); gap: calc(15 * var(--ui-pixel)); }
+  .home-page .brand img { width: calc(145 * var(--ui-pixel)); }
+  .home-page .site-nav { gap: calc(5 * var(--ui-pixel)) calc(16 * var(--ui-pixel)); font-size: calc(12 * var(--ui-pixel)); }
+  .home-featured::before { background-size: calc(460 * var(--ui-pixel)) calc(287.5 * var(--ui-pixel)); }
+  .featured-inner { width: calc(100% - calc(40 * var(--ui-pixel))); }
+  .featured-news { min-height: calc(350 * var(--ui-pixel)); }
+  .featured-placeholder { grid-template-columns: 1fr; gap: calc(24 * var(--ui-pixel)); }
+  .featured-copy-placeholder p { margin-bottom: calc(18 * var(--ui-pixel)); }
+}
+
+/* 3:2 and taller: the first blue face becomes the navigation area.
+   This rule depends on viewport shape, not device names or pixel width. */
+@media (max-aspect-ratio: 3/2) {
+  .home-page { --intro-height: min(calc(100 * var(--viewport-block-unit)), calc(calc(100 * var(--viewport-inline-unit)) / var(--intro-min-ratio))); }
+  .home-intro { --photo-fade: clamp(calc(96 * var(--ui-pixel)), calc(var(--intro-height) * .24), calc(240 * var(--ui-pixel))); }
+  .home-page .site-header {
+    padding: calc(clamp(calc(20 * var(--home-unit)), calc(3 * var(--viewport-inline-unit)), calc(40 * var(--home-unit))) + env(safe-area-inset-top, 0px)) max(clamp(calc(20 * var(--home-unit)), calc(3 * var(--viewport-inline-unit)), calc(40 * var(--home-unit))), env(safe-area-inset-right, 0px)) clamp(calc(20 * var(--home-unit)), calc(3 * var(--viewport-inline-unit)), calc(40 * var(--home-unit))) max(clamp(calc(20 * var(--home-unit)), calc(3 * var(--viewport-inline-unit)), calc(40 * var(--home-unit))), env(safe-area-inset-left, 0px));
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .home-page .brand { --brand-width: clamp(calc(145 * var(--home-unit)), calc(18 * var(--viewport-inline-unit)), calc(200 * var(--home-unit))); margin-left: auto; }
+  .home-page .brand img { width: var(--brand-width); }
+  .home-page .site-nav {
+    position: absolute;
+    top: calc(var(--intro-height) * .24);
+    left: clamp(calc(18 * var(--home-unit)), calc(4 * var(--viewport-inline-unit)), calc(64 * var(--home-unit)));
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: clamp(calc(3 * var(--home-unit)), calc(var(--intro-height) * .014), calc(20 * var(--home-unit)));
+    font-size: clamp(calc(11 * var(--home-unit)), calc(var(--intro-height) * .0375), calc(18 * var(--home-unit)));
+    line-height: 1.5;
+  }
+  .home-page .site-nav a { padding-block: clamp(var(--home-unit), calc(var(--intro-height) * .004), calc(5 * var(--home-unit))); }
+  .intro-heading { --heading-top: .28; font-size: clamp(calc(11 * var(--ui-pixel)), calc(3.5 * var(--viewport-inline-unit)), calc(32 * var(--ui-pixel))); }
+  .intro-contact-copy, .intro-contact-divider { display: none; }
+  .intro-contact-region {
+    --contact-qr-size: min(calc(18 * var(--viewport-inline-unit)), calc(180 * var(--home-unit)), calc(var(--intro-lower-height) * .65));
+    --contact-label-size: clamp(calc(11 * var(--home-unit)), calc(1.2 * var(--viewport-inline-unit)), calc(16 * var(--home-unit)));
+  }
+}
+
+/* Incenter of the triangle formed by the top, right and sloping edges.
+   Extend those edges; the lower edge does not constrain the circle. */
+@media not all and (min-aspect-ratio: 3/2) {
+  .intro-contact-region {
+    --face-top-width: calc(1 - var(--intro-diagonal-start) - var(--intro-diagonal-run) * var(--intro-split));
+    --face-radius: calc(calc(100 * var(--viewport-inline-unit)) * var(--face-top-width) / (1 + var(--intro-slope) + var(--intro-normal, 1.181905)));
+  }
+  .intro-qr-group {
+    left: calc(calc(100 * var(--viewport-inline-unit)) * var(--face-top-width) - var(--face-radius) - var(--contact-diagonal-gap));
+    top: var(--face-radius);
+    right: auto;
+    transform: translate(-50%, -50%);
+  }
+  .intro-instagram .intro-instagram-qr, .intro-instagram span { display: none; }
+  .intro-instagram .intro-instagram-icon { display: block; }
+}

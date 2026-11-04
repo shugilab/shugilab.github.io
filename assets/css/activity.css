@@ -1,0 +1,76 @@
+.home-main { width: 100%; padding: 0; min-height: 0; }
+/* Share the page's stacking context: news background < particles < content. */
+.activity-scene { --activity-width: calc(1160 * var(--home-unit)); --activity-gutter: calc(32 * var(--home-unit)); position: relative; padding-bottom: calc(84 * var(--home-unit)); background: var(--paper); }
+.activity-section-title { position: relative; z-index: 2; width: min(calc(100% - var(--activity-gutter) * 2), var(--activity-width)); margin: 0 auto calc(32 * var(--home-unit)); padding-top: calc(36 * var(--home-unit)); font-size: clamp(calc(28 * var(--home-unit)), calc(3 * var(--viewport-inline-unit)), calc(48 * var(--home-unit))); font-weight: 600; line-height: 1.4; }
+.activity-visual {
+  position: fixed;
+  inset: 0 0 auto;
+  width: 100%;
+  height: calc(100 * var(--viewport-block-unit));
+  /* Follow the viewport before the first chapter reaches it. The scene
+     clips this layer from the news through the last activity chapter. */
+  clip-path: inset(100% 0 0 0);
+  -webkit-mask-image: linear-gradient(to bottom, transparent var(--scene-clip-top, 0px), #000 calc(var(--scene-clip-top, 0px) + var(--scene-fade-top, 0px)), #000 calc(100% - var(--scene-clip-bottom, 0px) - var(--scene-fade-bottom, 0px)), transparent calc(100% - var(--scene-clip-bottom, 0px)));
+  mask-image: linear-gradient(to bottom, transparent var(--scene-clip-top, 0px), #000 calc(var(--scene-clip-top, 0px) + var(--scene-fade-top, 0px)), #000 calc(100% - var(--scene-clip-bottom, 0px) - var(--scene-fade-bottom, 0px)), transparent calc(100% - var(--scene-clip-bottom, 0px)));
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+.activity-visual canvas { display: block; width: 100%; height: 100%; }
+.activity-chapters { position: relative; z-index: 2; width: min(calc(100% - var(--activity-gutter) * 2), var(--activity-width)); margin-inline: auto; }
+.activity-chapter {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 43%;
+}
+.activity-chapter + .activity-chapter { margin-top: calc(48 * var(--home-unit)); }
+.activity-index { display: flex; align-items: center; gap: calc(15 * var(--home-unit)); margin-bottom: calc(22 * var(--home-unit)); color: var(--blue); font-size: calc(12 * var(--home-unit)); font-variant-numeric: tabular-nums; }
+.activity-index::before { content: ""; width: calc(25 * var(--home-unit)); height: calc(2 * var(--home-unit)); background: var(--pink); }
+.activity-chapter h3 { margin: 0 0 calc(18 * var(--home-unit)); font-size: clamp(calc(25 * var(--home-unit)), calc(2.8 * var(--viewport-inline-unit)), calc(39 * var(--home-unit))); font-weight: 500; letter-spacing: .025em; line-height: 1.55; }
+.activity-chapter p { margin-bottom: calc(16 * var(--home-unit)); font-size: calc(14 * var(--home-unit)); line-height: 1.9; }
+.activity-photo { width: min(100%, calc(360 * var(--home-unit))); aspect-ratio: 16 / 9; margin: calc(12 * var(--home-unit)) 0 0; overflow: hidden; border: var(--home-unit) solid var(--line); }
+.activity-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.activity-photo-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(12 * var(--home-unit)); width: 100%; margin-top: calc(12 * var(--home-unit)); }
+.activity-photo-gallery .activity-photo { width: 100%; margin: 0; }
+.activity-photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, calc(360 * var(--home-unit)));
+  aspect-ratio: 16 / 9;
+  margin: calc(12 * var(--home-unit)) 0 0;
+  border: var(--home-unit) solid var(--line);
+  background: var(--wash);
+  font-size: calc(12 * var(--home-unit));
+  color: rgb(93 113 168);
+}
+.activity-chapter a { font-size: calc(13 * var(--home-unit)); }
+.activity-chapter .activity-experience { margin-top: calc(14 * var(--home-unit)); font-size: calc(14 * var(--home-unit)); }
+.activity-step-nav { position: absolute; bottom: calc(30 * var(--home-unit)); left: max(var(--activity-gutter), calc((100% - var(--activity-width))/2)); display: flex; gap: calc(24 * var(--home-unit)); z-index: 2; font-size: calc(12 * var(--home-unit)); }
+.activity-step-nav a { padding-block: calc(6 * var(--home-unit)); text-decoration: none; border-bottom: var(--home-unit) solid transparent; font-variant-numeric: tabular-nums; }
+.activity-step-nav a[aria-current="step"] { border-color: var(--pink); }
+.activity-fallback { position: absolute; right: 6%; top: 44%; max-width: 42%; font-size: calc(13 * var(--home-unit)); }
+
+@media (max-width: 720px) {
+  .activity-scene { --activity-gutter: calc(20 * var(--ui-pixel)); }
+  .activity-section-title { margin-bottom: calc(28 * var(--ui-pixel)); }
+  .activity-chapter { width: 100%; }
+  .activity-chapter + .activity-chapter { margin-top: calc(40 * var(--ui-pixel)); }
+  .activity-chapter h3 { max-width: calc(300 * var(--ui-pixel)); font-size: clamp(calc(23 * var(--ui-pixel)), calc(6 * var(--viewport-inline-unit)), calc(30 * var(--ui-pixel))); margin-bottom: calc(8 * var(--ui-pixel)); }
+  .activity-index { margin-bottom: calc(14 * var(--ui-pixel)); }
+  .activity-chapter p { max-width: 36em; font-size: calc(12 * var(--ui-pixel)); }
+  .activity-photo-placeholder { width: min(48%, calc(240 * var(--ui-pixel))); margin-top: calc(4 * var(--ui-pixel)); font-size: calc(10 * var(--ui-pixel)); }
+  .activity-photo { width: min(48%, calc(240 * var(--ui-pixel))); margin-top: calc(4 * var(--ui-pixel)); }
+  .activity-chapter a { font-size: calc(12 * var(--ui-pixel)); }
+  .activity-step-nav { left: calc(20 * var(--ui-pixel)); bottom: calc(20 * var(--ui-pixel)); }
+  .activity-fallback { top: 60%; right: 8%; max-width: 75%; }
+}
+
+/* Use one viewport per introduction only in the wide layout. Keep the first
+   index close to the section heading; spare height follows the content. */
+@media (min-aspect-ratio: 3/2) {
+  .activity-chapter { min-height: calc(100 * var(--viewport-block-unit)); }
+  .activity-chapter + .activity-chapter { margin-top: 0; }
+}

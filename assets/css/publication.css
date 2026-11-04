@@ -1,0 +1,4 @@
+.publication-redacted { display:inline-block; filter:blur(4px); user-select:none; pointer-events:none; }
+.publication-redacted > span { white-space:nowrap; }
+.brand-affiliation .publication-redacted { filter:blur(2px); }
+.home-featured .featured-news { min-height:0; padding-block:calc(20 * var(--home-unit)) calc(120 * var(--home-unit)); }
